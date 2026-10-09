@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner() {
+      return signedIn() && request.auth.token.email == 'PASTE_OWNER_EMAIL';
+    }
+    function isEditor() {
+      return signedIn() && (
+        isOwner() || exists(/databases/$(database)/documents/editorEmails/$(request.auth.token.email))
+      );
+    }
+    // Dashboard data is publicly readable by anyone with the website link.
+    // Only owner or explicitly approved editor email accounts can change it.
+    match /appData/{dataKey} {
+      allow read: if true;
+      allow create, update, delete: if isEditor();
+    }
+    // Only the owner can grant or revoke edit access.
+    match /editorEmails/{email} {
+      allow read: if isOwner() || (signedIn() && request.auth.token.email == email);
+      allow create, update, delete: if isOwner();
+    }
+  }
+}

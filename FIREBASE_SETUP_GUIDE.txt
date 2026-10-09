@@ -1,0 +1,30 @@
+MOHUA FIREBASE SETUP GUIDE
+
+What this package does
+- Prepares the dashboard for Firebase Authentication + Cloud Firestore.
+- Dashboard data in appData is publicly readable, so people with the site link can view it.
+- Only the owner email or email IDs explicitly added as editors can write shared data.
+- Editor permissions are managed inside the dashboard after the owner signs in.
+
+Important limitation
+I cannot create a Firebase project inside your Google account or accept its terms on your behalf. You must create the project in your own account. Once you provide the Firebase Web App config and the owner email, I can place them into the HTML and rules for you.
+
+SETUP STEPS
+1. Open https://console.firebase.google.com/ and sign in with the Google account that should own the dashboard.
+2. Click Add project; name it mohua-business-dashboard (or another name you prefer). Finish the prompts.
+3. In Project Overview, click the Web icon (</>) to register a web app. Name it MOHUA Dashboard. Register app.
+4. Copy the firebaseConfig values shown for the web app.
+5. In Build > Authentication > Get started > Sign-in method, enable Email/Password.
+6. In Build > Firestore Database, create a database. For location choose a nearby India location if offered; database location cannot be changed later.
+7. Open Firestore Rules, replace the rules with the contents of firestore.rules, and replace PASTE_OWNER_EMAIL with your exact owner email. Publish.
+8. In the dashboard HTML, find `const firebaseConfig = { ... }` and replace all PASTE_* values with the Web App config from step 4. Set OWNER_EMAIL to the same exact owner email used in rules.
+9. Host the HTML on GitHub Pages or Firebase Hosting. Firebase Authentication's authorized domains must include the actual website hostname (for example your GitHub Pages domain).
+10. Open the hosted dashboard, create/sign in to an account using the owner email. The owner can then add editor email IDs in the Shared Dashboard Access panel.
+
+SECURITY / DATA NOTES
+- Firebase web config is not a private key, but Firestore Rules are what protect writes. Never use a service-account private key in HTML.
+- The rules make dashboard appData publicly readable to meet the public-link view requirement. Do not store sensitive personal or customer-private information in appData.
+- Only the owner should be allowed to manage editorEmails. Keep the OWNER_EMAIL value identical in the HTML and Firestore rules.
+- Existing data already in one browser is not automatically uploaded until an owner/editor signs in and edits/saves it; the dashboard will read cloud data on connect. For a first-time migration, after connecting, open the dashboard and save/import the required data using an authorized account.
+- Large base64 product photos may exceed Firestore document limits. Prefer image URLs for product photos; Firebase Storage can be added if you need managed photo uploads.
+- The HTML includes a best-effort localStorage-to-Firestore sync for app keys. Test with two browsers before relying on it for daily operations.
